@@ -1,0 +1,26 @@
+[
+  {
+    "id": 4,
+    "tamaño": 199,
+    "tiempo_arribo": 4,
+    "tiempo_irrupcion": 7
+  },
+  {
+    "id": 2,
+    "tamaño": 199,
+    "tiempo_arribo": 2,
+    "tiempo_irrupcion": 7
+  },
+  {
+    "id": 3,
+    "tamaño": 199,
+    "tiempo_arribo": 2,
+    "tiempo_irrupcion": 7
+  },
+  {
+    "id": 1,
+    "tamaño": 199,
+    "tiempo_arribo": 0,
+    "tiempo_irrupcion": 7
+  }
+]
