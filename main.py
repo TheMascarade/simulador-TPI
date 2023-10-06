@@ -13,7 +13,7 @@ def main():
         colaListos.extend(buscarProcesosEntrantes(instante, cargaTrabajo))
 
 
-def buscarProcesosEntrantes(instante: int, cargaTrabajo: list[dict]):
+def buscarProcesosEntrantes(instante: int, cargaTrabajo: list[dict]) -> list[dict]:
     entrantes: list[dict] = []
     for proceso in cargaTrabajo:
         if proceso["tiempo_arribo"] == instante:
