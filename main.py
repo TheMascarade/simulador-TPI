@@ -1,9 +1,10 @@
 import json
 
 
+
 def main():
     cargaTrabajo: list[dict] = json.load(open("json/procesos.json"))
-    cargaTrabajo.sort(key=lambda d: d["tiempo_arribo"])
+    cargaTrabajo.sort(key=lambda d: d["tiempo_arribo"]+d["id"])
     tiempoEjecucion: int = 0
     colaListos: list[dict] = []
     for proceso in cargaTrabajo:
