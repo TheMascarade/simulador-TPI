@@ -1,5 +1,4 @@
 import json
-from typing import Type, TypeVar
 
 
 class Memoria:
@@ -30,8 +29,7 @@ class SistemaOperativo:
         self.memoria = Memoria()
     def correr(self):
         self.set_tiempo_ejecucion()
-        i = 0
-           
+        
     def set_tiempo_ejecucion(self):
         for proceso in self.carga_trabajo:
             self.tiempo_ejecucion += proceso.tiempo_irrupcion
