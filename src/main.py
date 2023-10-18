@@ -1,19 +1,63 @@
 import json
 from memoria import *
 from procesador import *
+from proceso import *
 
-class SistemaOperativo:
+class Simulador:
     def __init__(self, carga_trabajo: list['Proceso'], particiones: list['Particion']):
         self.carga_trabajo = carga_trabajo
-        self.tiempo_ejecucion: int
-        self.QUANTUM = 2
+        self.tiempo_ejecucion = 0
         self.procesador = Procesador()
-        self.memoria = Memoria()
-    def correr(self):
-        self.set_tiempo_ejecucion()
+        self.memoria = Memoria(particiones)
+
+    def TrabajosPosibles(self):
+        procesosAdmitibles=[]
+        for proceso in self.carga_trabajo:
+            if proceso.arribo<self.tiempo_ejecucion:
+                procesosAdmitibles.append(proceso)
+        
+        return procesosAdmitibles
+
+
+    def Mostrar(self):
+        self.procesador.Mostrar()
+        self.memoria.Mostrar()
+
+
+
+    def Correr(self):
+        '''este seria el loop principal q definimos'''
+        while(True):
+            if respuestaProcesador:
+                print("Terminó el proceso", respuestaProcesador.id)
+                self.memoria.Desalocar(proceso=respuestaProcesador.id)
+
+            trabajosPosibles=self.TrabajosPosibles()
+            #hay algun proceso sin admitir
+            if len(trabajosPosibles)>0:
+                proceso=self.carga_trabajo[0]
+                #hay alguna particion disponible y suficiente
+                if (self.memoria.BuscarParticionDisponible(proceso)):
+                    self.memoria.Alocar(proceso)
+                    self.procesador.EnviarProcesoColaDeListos(proceso)
+            
+            procesoAEjecutar= self.procesador.SiguienteProcesoAEjecutar()
+            if self.memoria.ProcesoEnMemoria(procesoAEjecutar):
+                self.memoria.Swap(procesoAEjecutar)
+
+
+            
+            respuestaProcesador=self.procesador.DescontarQuantum()
+
+
+        print("Tardó en ejecutarse ",self.tiempo_ejecucion," unidades de tiempo")
+            
+
+
     def set_tiempo_ejecucion(self):
         for proceso in self.carga_trabajo:
             self.tiempo_ejecucion += proceso.tiempo_irrupcion
+
     def actualizar(self, msg:str):
         ()
 
@@ -40,7 +84,10 @@ def main():
             part["frag_interna"]
         )
         particiones.append(particion)
-    sim = SistemaOperativo(carga_trabajo, particiones)
+    sim = Simulador(carga_trabajo, particiones)
+    sim.correr()
+
 
 if __name__ == "__main__":
     main()
+    

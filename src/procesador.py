@@ -1,30 +1,51 @@
-from typing_extensions import Self
+#Notas:
+#Que empiece con __ significa que es privado
+from proceso import *
+Debug=False
 
 
 class Procesador:
-    def __init__(self) -> None:
-        self.observadores: list = []
-        self.proceso: 'Proceso'
-        self.clock = 0
-    def ejecutar(self, proceso: 'Proceso'):
-        self.proceso = proceso
-    def correr(self, tiempo_limite:int):
-        for self.clock in range(0, tiempo_limite):
-            if self.proceso.tiempo_irrupcion == 0:
-                self.notificar("Fin proceso")
-            self.proceso.tiempo_irrupcion -= 1
-    def agregar(self, observador):
-        self.observadores.append(observador)
-    def remover(self, observador):
-        self.observadores.remove(observador)
-    def notificar(self, msg: str):
-        for observador in self.observadores:
-            observador.actualizar(msg)
+    def __init__(self,procesos=[]):
+        self.__QuantumProcesoActual=0
+        self.__ProcesosListos=procesos
+        #Porque el enunciado dice q el round robin es de 2, podria ser global la variable pero preferi dejarla aca
+        self.__QuantumRR=2
 
 
-class Proceso:
-    def __init__(self, id: int, tam: int, arribo: int, irrupcion: int) -> None:
-        self.id: int = id
-        self.tam: int = tam
-        self.tiempo_arribo: int = arribo
-        self.tiempo_irrupcion: int = irrupcion
+
+    def EnviarProcesoColaDeListos(self,proceso):
+        if len(self.__ProcesosListos)<5:
+            self.__ProcesosListos.append(proceso)
+            return True
+        else:
+            if Debug==True :
+                print("Se esta metiendo mas de 5 procesos")
+            return False
+
+    def DescontarQuantum(self) -> Proceso:
+        '''Descontamos el Quantum y si termina el proceso antes, 
+        Si termina un proceso lo devolvemos y sino no devolvemos nada'''
+        self.__QuantumProcesoActual+=1
+        tiempoRes=self.__ProcesosListos[0].DescontarQuantum()
+        if (tiempoRes==0):
+            self.AsignarSiguienteProcesoEjecutar()
+            procesoTerminado=self.__ProcesosListos.pop(0)
+            return procesoTerminado
+        if(self.__QuantumProcesoActual>=self.__QuantumRR):
+            self.AsignarSiguienteProcesoEjecutar()
+            return None
+    
+
+    def __SetProcesosListos(self,procesos=[]):
+        pass
+
+    def GetProcesosListos(self):
+        return self.__ProcesosListos
+
+    def SiguienteProcesoAEjecutar(self):
+        return self.__ProcesosListos[0]
+    def AsignarSiguienteProcesoEjecutar(self):
+        self.__QuantumProcesoActual=0 
+        ultimoProceso=self.__ProcesosListos.pop(0)
+        #ultimoProceso.liberarMemoria()
+        self.__ProcesosListos.append(ultimoProceso)
