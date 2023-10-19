@@ -1,61 +1,68 @@
-from dataclasses import dataclass
-from proceso import *
-
-@dataclass
-class Particion:
-    id: int
-    tam: int
-    dirComienzo: int
-    fragmentacionInterna: int
-    ocupado: bool = False
-    proceso: Proceso = None
-
-    def calcularFragmentacionActual(self) -> int:
-        return self.tam-self.proceso.tam
-    def calcularFragmentacion(self,proceso) -> int:
-        return self.tam-proceso.tam
-
-
-    def Mostrar(self):
-        print(self.id,", ",self.tam,", ",self.dirComienzo)
-        if self.ocupado:
-            print("proceso: ",self.proceso.id," frag :",self.calcularFragmentacionActual())
-        else:
-            print("Sin proceso")
+from proceso import Proceso
 
 
 class Memoria:
-    def __init__(self,particiones:list()):
-        self.particiones = particiones 
-        self.noCargados=[None,None]
-
-    def Alocar(self,proceso:Proceso):
-        fragmentacionMax=999999
-        idParticion=None
-        for i in len(self.particiones):
-            if (not self.particiones[i].ocupado):
-                fragmentacion=self.particiones[i].calcularFragmentacion(proceso)
-            if fragmentacion < fragmentacionMax and fragmentacion>0:
-                idParticion=i
-                
-        if idParticion:
-            self.particiones[i].proceso=proceso
-            self.particiones[i].ocupado=True
-            
-    def Desalocar(self,proceso):
-        for i in len(self.particiones):
-            if proceso==self.particiones[i].proceso:
-                self.particiones[i].proceso=None
-                self.particiones[i].ocupado=False
-
-    def BuscarParticionDisponible(self,proceso:Proceso):
-        for particion in self.particiones:
-            if (not particion.ocupado) and (particion.tam <= proceso.tam):
+    def __init__(self, particiones) -> None:
+        self.Particiones: list['Particion'] = particiones
+        self.Disco: list['Proceso'] = []
+    def Alocar(self, proceso: 'Proceso'):
+        index = 0
+        frag = 9999999
+        for particion in self.Particiones:
+            frag_particion = particion.GetFragInterna(proceso)
+            if frag_particion >= 0 and frag_particion < frag:
+                frag = frag_particion
+                index = self.Particiones.index(particion)
+        if frag != 9999999:
+            self.Particiones[index].CargarProceso(proceso)
+    def BuscarParticionDisponible(self, proceso: 'Proceso'):
+        for particion in self.Particiones:
+            if not particion.Ocupado and particion.Tam >= proceso.tam:
                 return True
         return False
+    def DiscoQuedaEspacio(self):
+        if len(self.Disco) >= 2:
+            return False
+        return True
+    def DiscoAlocar(self, proceso):
+        if self.DiscoQuedaEspacio():
+            self.Disco.append(proceso)
+            return True
+        return False
+    def DiscoDesalocar(self, proceso):
+        self.Disco.remove(proceso)
+    def Desalocar(self, proceso: 'Proceso'):
+        index = 0
+        for particion in self.Particiones:
+            if particion.GetProceso == proceso:
+                particion.Desalocar()
+                break
 
-
-    def Mostrar(self):
-        print("particiones")
-        for x in self.particiones:
-            x.Mostrar()
+class Particion:
+    def __init__(self, id, tam, dir_comienzo, frag_interna):
+        self.Id = id
+        self.Tam = tam
+        self.DirComienzo = dir_comienzo
+        self.FragInterna = frag_interna
+        self.Proceso: 'Proceso' | None
+        self.Ocupado = False
+        self.Os = False
+    def CargarProceso(self, proceso: 'Proceso'):
+        self.Proceso = proceso
+        self.SetOcupado()
+        self.SetFragInterna()
+    def Desalocar(self):
+        self.Proceso = None
+        self.SetOcupado()
+        self.SetFragInterna()
+    def GetFragInterna(self, proceso: 'Proceso'):
+        return self.Tam - proceso.tam
+    def SetFragInterna(self):
+        if self.Proceso != None:
+            self.FragInterna = self.Tam - self.Proceso.tam
+        else:
+            self.FragInterna = None
+    def GetProceso(self):
+        return self.Proceso
+    def SetOcupado(self):
+        self.Ocupado = not self.Ocupado
