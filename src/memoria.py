@@ -1,8 +1,8 @@
-from proceso import Proceso
-
 # NOTA
 # DiscoAlocar() ya verifica si queda espacio en disco asi en el flujo del simulador solamente tenemos que invocar ese metodo para saber si se puede admitir un proceso o no
 # Tambien podemos hacer lo mismo con memoria interna si resulta mas facil
+
+from proceso import Proceso
 
 class Memoria:
     def __init__(self, particiones) -> None:
