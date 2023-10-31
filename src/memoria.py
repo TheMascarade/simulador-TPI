@@ -10,6 +10,9 @@ class Memoria:
         self.Particiones: list["Particion"] = particiones
         self.Disco: list["Proceso"] = []
 
+    def Mostrar(self):
+        pass
+
     def Alocar(self, proceso: "Proceso"):
         index = 0
         frag = 9999999
