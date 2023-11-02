@@ -14,6 +14,7 @@ class Simulador:
     def TrabajosPosibles(self):
         procesosAdmisibles = []
         for proceso in self.cargaTrabajo:
+            # Enviamos todos los procesos que solicitan memoria en ese instante o que dejamos en estado de nuevo.
             if proceso.arribo <= self.reloj:
                 procesosAdmisibles.append(proceso)
         return procesosAdmisibles
