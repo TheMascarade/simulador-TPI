@@ -16,15 +16,19 @@ class Memoria:
     def Alocar(self, proceso: "Proceso"):
         index = 0
         frag = 9999999
+        # Nos fijamos si podemos alocar en alguna particion
+        if not self.ParticionDisponible(proceso):
+            return False
+        # Algoritmo best-fit porque ya sabemos que podemos alocar
         for particion in self.Particiones:
-            frag_particion = particion.GetFragInterna(proceso)
-            if frag_particion >= 0 and frag_particion < frag:
-                frag = frag_particion
+            fragParticion = particion.GetFragInterna(proceso)
+            if fragParticion >= 0 and fragParticion < frag:
+                frag = fragParticion
                 index = self.Particiones.index(particion)
-        if frag != 9999999:
-            self.Particiones[index].CargarProceso(proceso)
+        self.Particiones[index].CargarProceso(proceso)
+        return True
 
-    def BuscarParticionDisponible(self, proceso: "Proceso"):
+    def ParticionDisponible(self, proceso: "Proceso"):
         for particion in self.Particiones:
             if not particion.Ocupado and particion.Tam >= proceso.tam:
                 return True
