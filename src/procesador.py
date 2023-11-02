@@ -7,16 +7,18 @@ Debug = False
 
 class Procesador:
     def __init__(self, procesos=[]):
-        self.__QuantumProcesoActual = 0
+        self.__ProcesoActual: "Proceso"
         self.__ProcesosListos = procesos
         # Porque el enunciado dice q el round robin es de 2, podria ser global la variable pero preferi dejarla aca
-        self.__QuantumRR = 2
+        self.__Quantum = 2
 
     def Mostrar(self):
         pass
 
-    def EnviarProcesoColaDeListos(self, proceso):
-        if len(self.__ProcesosListos) < 5:
+    def EnviarAColaDeListos(self, proceso):
+        # Tiene que ser menor a 3 porque los listos son
+        # solo los cargados en memoria, no los que estan en disco
+        if len(self.__ProcesosListos) < 3:
             self.__ProcesosListos.append(proceso)
             return True
         else:
@@ -24,18 +26,26 @@ class Procesador:
                 print("Se esta metiendo mas de 5 procesos")
             return False
 
-    def DescontarQuantum(self) -> Proceso | None:
+    def Ejecutar(self) -> Proceso | None:
         """Descontamos el Quantum y si termina el proceso antes,
         Si termina un proceso lo devolvemos y sino no devolvemos nada"""
-        self.__QuantumProcesoActual += 1
-        tiempoRes = self.__ProcesosListos[0].DescontarQuantum()
-        if tiempoRes == 0:
-            self.AsignarSiguienteProcesoEjecutar()
+        self.__ProcesoActual.DescontarIrrupcion()
+        self.__Quantum -= 1
+        # Proceso terminado
+        if self.__ProcesoActual.irrupcion == 0:
             procesoTerminado = self.__ProcesosListos.pop(0)
-            return procesoTerminado
-        if self.__QuantumProcesoActual >= self.__QuantumRR:
             self.AsignarSiguienteProcesoEjecutar()
-            return None
+            self.__ResetQuantum()
+            return procesoTerminado
+        # Fin de tiempo disponible para proceso
+        if self.__Quantum == 0:
+            self.RotarColaListos()
+            self.AsignarSiguienteProcesoEjecutar()
+            # Quantum vuelve a ser 2
+            self.__ResetQuantum()
+
+    def __ResetQuantum(self):
+        self.__Quantum = 2
 
     def __SetProcesosListos(self, procesos=[]):
         pass
@@ -47,7 +57,8 @@ class Procesador:
         return self.__ProcesosListos[0]
 
     def AsignarSiguienteProcesoEjecutar(self):
-        self.__QuantumProcesoActual = 0
+        self.__ProcesoActual = self.SiguienteProcesoAEjecutar()
+
+    def RotarColaListos(self):
         ultimoProceso = self.__ProcesosListos.pop(0)
-        # ultimoProceso.liberarMemoria()
         self.__ProcesosListos.append(ultimoProceso)
