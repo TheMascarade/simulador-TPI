@@ -20,5 +20,5 @@ class Proceso:
         self.tam = tam
         self.estado = Estado.NoAdmitido
 
-    def DescontarQuantum(self):
+    def DescontarIrrupcion(self):
         self.irrupcion -= 1
