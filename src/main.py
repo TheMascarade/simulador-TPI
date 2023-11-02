@@ -7,52 +7,46 @@ from proceso import *
 class Simulador:
     def __init__(self, cargaTrabajo: list["Proceso"], particiones: list["Particion"]):
         self.cargaTrabajo = cargaTrabajo
-        self.tiempoEjecucion = 0
+        self.reloj = 0
         self.procesador = Procesador()
         self.memoria = Memoria(particiones)
 
     def TrabajosPosibles(self):
-        procesosAdmitibles = []
+        procesosAdmisibles = []
         for proceso in self.cargaTrabajo:
-            if proceso.arribo == self.tiempoEjecucion:
-                procesosAdmitibles.append(proceso)
-
-        return procesosAdmitibles
+            if proceso.arribo <= self.reloj:
+                procesosAdmisibles.append(proceso)
+        return procesosAdmisibles
 
     def Mostrar(self):
         self.procesador.Mostrar()
         self.memoria.Mostrar()
 
     def Correr(self):
-        """este seria el loop principal q definimos"""
+        # 1 Ver los procesos entrantes en ese instante
+        # 2 Ver si se pueden cargar procesos
+        # 3 Ejecutar el proceso `procesador.Ejecutar(proceso)`
+        # 4 Ver si el proceso termino o si acabo el quantum
+        #    - Si termino ver si podemos cargar otro y desalocarlo
+        #    - Si termino el quantum volverlo a colaListos (se encarga procesador)
         while True:
-            if respuestaProcesador:
-                print("Terminó el proceso", respuestaProcesador.id)
-                self.memoria.Desalocar(proceso=respuestaProcesador.id)
+            nuevos = self.TrabajosPosibles()
+            # Alocamos todos los procesos que podemos
+            for nuevo in nuevos:
+                # Tratamos de alocar en memoria interna
+                if self.memoria.Alocar(nuevo):
+                    # Si se puede enviamos a cola de listos
+                    self.procesador.EnviarAColaDeListos(nuevo)
+                else:
+                    # No queda espacio en memoria entonces probamos con disco
+                    self.memoria.DiscoAlocar(nuevo)
+            res = self.procesador.Ejecutar()
+            if res is Proceso:
+                self.memoria.Desalocar(res)
+            self.AumentarReloj()
 
-            trabajosPosibles = self.TrabajosPosibles()
-            # hay algun proceso sin admitir
-            if len(trabajosPosibles) > 0:
-                proceso = self.cargaTrabajo[0]
-                # hay alguna particion disponible y suficiente
-                if self.memoria.BuscarParticionDisponible(proceso):
-                    self.memoria.Alocar(proceso)
-                    self.procesador.EnviarProcesoColaDeListos(proceso)
-
-            procesoAEjecutar = self.procesador.SiguienteProcesoAEjecutar()
-            if self.memoria.ProcesoEnMemoria(procesoAEjecutar):
-                self.memoria.Swap(procesoAEjecutar)
-
-            respuestaProcesador = self.procesador.DescontarQuantum()
-
-        print("Tardó en ejecutarse ", self.tiempoEjecucion, " unidades de tiempo")
-
-    def set_tiempo_ejecucion(self):
-        for proceso in self.cargaTrabajo:
-            self.tiempoEjecucion += proceso.tiempo_irrupcion
-
-    def actualizar(self, msg: str):
-        ()
+    def AumentarReloj(self):
+        self.reloj += 1
 
 
 def main():
