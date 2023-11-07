@@ -2,14 +2,11 @@ from enum import Enum
 
 
 class Estado(Enum):
-    NoAdmitido = 0
-    Nuevo = 1
-    Listo = 2
-    Ejecutando = 3
-    Bloqueado = 4
-    Terminado = 5
-    ListoSuspendido = 6
-    BloqueadoSuspendido = 7
+    Nuevo = 0
+    Listo = 1
+    Ejecutando = 2
+    Terminado = 3
+    Suspendido = 4
 
 
 class Proceso:
@@ -18,7 +15,7 @@ class Proceso:
         self.arribo = tArribo
         self.irrupcion = tIrrupcion
         self.tam = tam
-        self.estado = Estado.NoAdmitido
+        self.estado = Estado.Nuevo
 
     def DescontarIrrupcion(self):
         self.irrupcion -= 1

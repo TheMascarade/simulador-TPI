@@ -2,7 +2,7 @@
 # DiscoAlocar() ya verifica si queda espacio en disco asi en el flujo del simulador solamente tenemos que invocar ese metodo para saber si se puede admitir un proceso o no
 # Tambien podemos hacer lo mismo con memoria interna si resulta mas facil
 
-from proceso import Proceso
+from proceso import *
 
 
 class Memoria:
@@ -54,6 +54,13 @@ class Memoria:
             if particion.GetProceso == proceso:
                 particion.Desalocar()
                 break
+
+    def CargarDesdeDisco(self):
+        if self.Disco == 0:
+            return
+        for proc in self.Disco:
+            if self.Alocar(proc):
+                proc.estado = Estado.Listo
 
 
 class Particion:

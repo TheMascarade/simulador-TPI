@@ -58,7 +58,9 @@ class Procesador:
 
     def AsignarSiguienteProcesoEjecutar(self):
         self.__ProcesoActual = self.SiguienteProcesoAEjecutar()
+        self.__ProcesoActual.estado = Estado.Ejecutando
 
     def RotarColaListos(self):
         ultimoProceso = self.__ProcesosListos.pop(0)
+        ultimoProceso.estado = Estado.Listo
         self.__ProcesosListos.append(ultimoProceso)

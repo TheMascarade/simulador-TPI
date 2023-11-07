@@ -11,7 +11,7 @@ class Simulador:
         self.procesador = Procesador()
         self.memoria = Memoria(particiones)
 
-    def TrabajosPosibles(self):
+    def TrabajosPosibles(self) -> list["Proceso"]:
         procesosAdmisibles = []
         for proceso in self.cargaTrabajo:
             # Enviamos todos los procesos que solicitan memoria en ese instante o que dejamos en estado de nuevo.
@@ -32,17 +32,22 @@ class Simulador:
         #    - Si termino el quantum volverlo a colaListos (se encarga procesador)
         while True:
             nuevos = self.TrabajosPosibles()
-            # Alocamos todos los procesos que podemos
+            # Los procesos almacenados en disco toman prioridad
+            self.memoria.CargarDesdeDisco()
+            # Alocamos todos los procesos que podemos en estado Nuevo
             for nuevo in nuevos:
                 # Tratamos de alocar en memoria interna
                 if self.memoria.Alocar(nuevo):
                     # Si se puede enviamos a cola de listos
                     self.procesador.EnviarAColaDeListos(nuevo)
+                    nuevo.estado = Estado.Listo
                 else:
                     # No queda espacio en memoria entonces probamos con disco
-                    self.memoria.DiscoAlocar(nuevo)
+                    if self.memoria.DiscoAlocar(nuevo):
+                        nuevo.estado = Estado.Suspendido
             res = self.procesador.Ejecutar()
             if res is Proceso:
+                res.estado = Estado.Terminado
                 self.memoria.Desalocar(res)
             self.AumentarReloj()
 
