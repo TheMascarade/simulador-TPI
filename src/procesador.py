@@ -7,7 +7,7 @@ Debug = False
 
 class Procesador:
     def __init__(self, procesos=[]):
-        self.__ProcesoActual: "Proceso"
+        self.__ProcesoActual=None
         self.__ProcesosListos = procesos
         # Porque el enunciado dice q el round robin es de 2, podria ser global la variable pero preferi dejarla aca
         self.__Quantum = 2
@@ -20,15 +20,19 @@ class Procesador:
         # solo los cargados en memoria, no los que estan en disco
         if len(self.__ProcesosListos) < 3:
             self.__ProcesosListos.append(proceso)
+            self
             return True
         else:
             if Debug == True:
                 print("Se esta metiendo mas de 5 procesos")
             return False
+ 
 
     def Ejecutar(self) -> Proceso | None:
         """Descontamos el Quantum y si termina el proceso antes,
         Si termina un proceso lo devolvemos y sino no devolvemos nada"""
+        if not self.__ProcesoActual:
+            self.AsignarSiguienteProcesoEjecutar()
         self.__ProcesoActual.DescontarIrrupcion()
         self.__Quantum -= 1
         # Proceso terminado
