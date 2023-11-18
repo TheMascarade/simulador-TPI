@@ -11,7 +11,10 @@ class Memoria:
         self.Disco: list["Proceso"] = []
 
     def Mostrar(self):
-        pass
+        for particion in self.Particiones:
+            print("-----------------------------")
+            particion.Mostrar
+        print("-----------------------------")
 
     def Alocar(self, proceso: "Proceso"):
         index = 0
@@ -97,3 +100,15 @@ class Particion:
 
     def SetOcupado(self):
         self.Ocupado = not self.Ocupado
+
+    def Mostrar(self):
+        id = 0
+        if self.Proceso == None:
+            id = 0
+        else:
+            id = self.Proceso.id
+        print("Particion:", self.Id)
+        print("Proceso:", id)
+        print("Tamaño:", self.Tam)
+        print("Direccion inicio:", self.DirComienzo)
+        print("Fragmentacion interna:", self.FragInterna)
