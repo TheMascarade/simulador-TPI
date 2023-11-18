@@ -1,25 +1,19 @@
 [
   {
-    "id": 4,
-    "dir_comienzo": 0,
-    "tam": 100,
-    "frag_interna": 0
-  },
-  {
     "id": 3,
-    "dir_comienzo": 100,
+    "dir_comienzo": 0,
     "tam": 250,
     "frag_interna": 0
   },
   {
     "id": 2,
-    "dir_comienzo": 350,
+    "dir_comienzo": 250,
     "tam": 120,
     "frag_interna": 0
   },
   {
     "id": 1,
-    "dir_comienzo": 470,
+    "dir_comienzo": 370,
     "tam": 60,
     "frag_interna": 0
   }

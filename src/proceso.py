@@ -5,9 +5,8 @@ class Estado(Enum):
     Nuevo = 0
     Listo = 1
     Ejecutando = 2
-    Terminado = 3
-    Suspendido = 4
-
+    Suspendido = 3
+    Terminado = 4
 
 class Proceso:
     def __init__(self, id, tam, tArribo, tIrrupcion):

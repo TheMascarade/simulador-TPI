@@ -1,17 +1,21 @@
 import json
+import csv
 from memoria import *
 from procesador import *
 from proceso import *
 
 
 class Simulador:
-    def __init__(self, cargaTrabajo: list["Proceso"], particiones: list["Particion"]):
+    def __init__(self, cargaTrabajo: list[Proceso], particiones: list[Particion]):
         self.cargaTrabajo = cargaTrabajo
-        self.reloj = 0
-        self.procesador = Procesador()
+        self.reloj = 0 
         self.memoria = Memoria(particiones)
+        self.procesosNuevos=[]
+        self.procesoAEjecutar=None
+        self.procesosEnDisco=[]
+        self.procesosEnMemoria=[]
 
-    def TrabajosPosibles(self) -> list["Proceso"]:
+    def TrabajosPosibles(self) -> list[Proceso]:
         procesosAdmisibles = []
         for proceso in self.cargaTrabajo:
             # Enviamos todos los procesos que solicitan memoria en ese instante o que dejamos en estado de nuevo.
@@ -19,9 +23,6 @@ class Simulador:
                 procesosAdmisibles.append(proceso)
         return procesosAdmisibles
 
-    def Mostrar(self):
-        self.procesador.Mostrar()
-        self.memoria.Mostrar()
 
     def Correr(self):
         # 1 Ver los procesos entrantes en ese instante
@@ -30,50 +31,81 @@ class Simulador:
         # 4 Ver si el proceso termino o si acabo el quantum
         #    - Si termino ver si podemos cargar otro y desalocarlo
         #    - Si termino el quantum volverlo a colaListos (se encarga procesador)
-        while True:
-            nuevos = self.TrabajosPosibles()
-            # Los procesos almacenados en disco toman prioridad
-            self.memoria.CargarDesdeDisco()
-            # Alocamos todos los procesos que podemos en estado Nuevo
-            for nuevo in nuevos:
-                # Tratamos de alocar en memoria interna
-                if self.memoria.Alocar(nuevo):
-                    # Si se puede enviamos a cola de listos
-                    self.procesador.EnviarAColaDeListos(nuevo)
-                    nuevo.estado = Estado.Listo
-                else:
-                    # No queda espacio en memoria entonces probamos con disco
-                    if self.memoria.DiscoAlocar(nuevo):
-                        nuevo.estado = Estado.Suspendido
-            res = self.procesador.Ejecutar()
-            if res is Proceso:
-                res.estado = Estado.Terminado
-                self.memoria.Desalocar(res)
-            self.AumentarReloj()
 
-    def AumentarReloj(self):
-        self.reloj += 1
+
+        while self.cargaTrabajo[0].arribo==self.reloj:
+            self.procesosNuevos.append(self.cargaTrabajo.pop(0))
+            if len(self.cargaTrabajo)==0:
+                break
+
+
+        while True:
+            while len(self.cargaTrabajo)>0 and self.cargaTrabajo[0].arribo==self.reloj:
+                self.procesosNuevos.append(self.cargaTrabajo.pop(0))
+                if len(self.cargaTrabajo)==0:
+                    break
+                    
+            if self.memoria.procesosAlmacenados<5:
+                while len(self.procesosNuevos):
+                    pudoAlocar=self.memoria.TratarAlocar(self.procesosNuevos[0])
+                    if pudoAlocar==True:
+                        proc=self.procesosNuevos.pop(0)
+                        self.procesador.EnviarACola(proc,Estado.Listo)
+                    elif pudoAlocar==False:
+                        proc=self.procesosNuevos.pop(0)
+                        self.procesador.EnviarACola(proc,Estado.Suspendido)
+                    else:
+                        #si no se pudo ubicar pues queda en estado Nuevo hasta que se pueda ubicar
+                        #averiguar como romper doble loop
+                        break
+            test=self.procesador.ProcesosListos
+            res = self.procesador.Ejecutar()
+            self.reloj += 1
+            if res is not None:
+                if res[0]=='fin':
+                    self.memoria.Desalocar(res)
+                #nos fijamos si el siguiente proceso a ejecutar esta en memoria
+                sigProc= self.procesador.SiguienteProcesoAEjecutar()
+                if self.memoria.EncontrarParticion(sigProc)==True:
+                    self.memoria.PasarAMemoria(sigProc,self.procesador.__ProcesosListos)
+                
+                
+
+
+    def MostrarMensaje(self,resultado):
+        pass
+
 
 
 def main():
-    lista_procesos = json.load(open("json/procesos.json"))
-    lista_procesos.sort(key=lambda d: d["tiempo_arribo"])
-    cargaTrabajo: list["Proceso"] = []
-    for proc in lista_procesos:
-        proceso = Proceso(
-            proc["id"], proc["tam"], proc["tiempo_arribo"], proc["tiempo_irrupcion"]
-        )
-        cargaTrabajo.append(proceso)
-    lista_particiones = json.load(open("json/particiones.json"))
+    #leer carga de trabajo
+    lista_procesos=[]
+    with open('data\procesos.csv') as csv_file:
+        csv_reader=csv.reader(csv_file,delimiter=',')
+        line_count=0
+        header=next(csv_reader)
+        for row in csv_reader:
+            if int(row[1])>250:
+                raise("no se puede cargar programas que pidan mas de 250 kb")
+            lista_procesos.append(Proceso(int(row[0]),int(row[1]),int(row[2]),int(row[3])))
+    
+    lista_procesos.sort(key=lambda d: d.arribo)
+    #leer particiones
+    lista_particiones = json.load(open("data/particiones.json"))
     particiones = []
     for part in lista_particiones:
         particion = Particion(
             part["id"], part["tam"], part["dir_comienzo"], part["frag_interna"]
         )
         particiones.append(particion)
-    sim = Simulador(cargaTrabajo, particiones)
+    
+    sim = Simulador(lista_procesos, particiones)
     sim.Correr()
 
 
 if __name__ == "__main__":
     main()
+
+
+
+

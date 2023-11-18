@@ -2,39 +2,66 @@
 # DiscoAlocar() ya verifica si queda espacio en disco asi en el flujo del simulador solamente tenemos que invocar ese metodo para saber si se puede admitir un proceso o no
 # Tambien podemos hacer lo mismo con memoria interna si resulta mas facil
 
-from proceso import *
-
+from proceso import Proceso
 
 class Memoria:
     def __init__(self, particiones) -> None:
-        self.Particiones: list["Particion"] = particiones
-        self.Disco: list["Proceso"] = []
+        self.Particiones: list[Particion] = particiones
+        self.Disco: list[Proceso] = []
+        self.procesosAlmacenados=0
 
-    def Mostrar(self):
-        pass
 
-    def Alocar(self, proceso: "Proceso"):
-        index = 0
+    def TratarAlocar(self, proceso: Proceso):
+        index = None
         frag = 9999999
-        # Nos fijamos si podemos alocar en alguna particion
-        if not self.ParticionDisponible(proceso):
-            return False
-        # Algoritmo best-fit porque ya sabemos que podemos alocar
+        # Algoritmo best-fit para ver si podemos alocar
         for particion in self.Particiones:
+            if particion.Ocupado==True:
+                continue
             fragParticion = particion.GetFragInterna(proceso)
             if fragParticion >= 0 and fragParticion < frag:
                 frag = fragParticion
                 index = self.Particiones.index(particion)
-        self.Particiones[index].CargarProceso(proceso)
-        return True
 
-    def ParticionDisponible(self, proceso: "Proceso"):
+        if index !=None:
+            self.Particiones[index].CargarProceso(proceso)
+            self.procesosAlmacenados+=1
+            return True
+        else:
+            if len(self.Disco)<2:
+                self.Disco.append(proceso)
+                self.procesosAlmacenados+=1
+                return True
+        return False
+
+    def EncontrarParticion(self,proceso):
+        #devuelve True si esta en memoria
+        #devuelve False si esta en Disco
+        #Y si no esta devuelve None
+        if proceso in self.Particiones:
+            return True
+        elif proceso in self.Disco:
+            return False
+        raise("no esta asignado el proceso")
+
+    def PasarAMemoria(self,proceso,procesosListos):
+        #esta funcion solo se usa despues de encontrarParticion y si devuelve False
+        self.Disco.remove(proceso)
+        procesosReOrganizar=[proceso]
+        procesosListos
+        for particion in self.Particiones:
+            particion.Desalocar()
+        for proc in procesosListos:
+            self.Alocar(proc)
+        
+
+    def ParticionDisponible(self, proceso: Proceso):
         for particion in self.Particiones:
             if not particion.Ocupado and particion.Tam >= proceso.tam:
                 return True
         return False
 
-    def DiscoQuedaEspacio(self):
+    def DiscoDisponible(self):
         if len(self.Disco) >= 2:
             return False
         return True
@@ -48,7 +75,7 @@ class Memoria:
     def DiscoDesalocar(self, proceso):
         self.Disco.remove(proceso)
 
-    def Desalocar(self, proceso: "Proceso"):
+    def Desalocar(self, proceso: Proceso):
         index = 0
         for particion in self.Particiones:
             if particion.GetProceso == proceso:
@@ -69,31 +96,21 @@ class Particion:
         self.Tam = tam
         self.DirComienzo = dir_comienzo
         self.FragInterna = frag_interna
-        self.Proceso: "Proceso" | None
+        self.Proceso = None
         self.Ocupado = False
         self.Os = False
 
-    def CargarProceso(self, proceso: "Proceso"):
+    def CargarProceso(self, proceso: Proceso):
         self.Proceso = proceso
-        self.SetOcupado()
-        self.SetFragInterna()
+        self.Ocupado=True
+        self.FragInterna = self.Tam - proceso.tam
 
     def Desalocar(self):
         self.Proceso = None
-        self.SetOcupado()
-        self.SetFragInterna()
+        self.Ocupado = False
+        self.FragInterna = None
 
-    def GetFragInterna(self, proceso: "Proceso"):
-        return self.Tam - proceso.tam
+    def GetFragInterna(self,proceso:Proceso):
+        return proceso.tam-self.Tam
 
-    def SetFragInterna(self):
-        if self.Proceso != None:
-            self.FragInterna = self.Tam - self.Proceso.tam
-        else:
-            self.FragInterna = None
 
-    def GetProceso(self):
-        return self.Proceso
-
-    def SetOcupado(self):
-        self.Ocupado = not self.Ocupado
