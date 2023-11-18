@@ -15,6 +15,14 @@ class Memoria:
             print("-----------------------------")
             particion.Mostrar
         print("-----------------------------")
+        print("En disco:")
+        print("-----")
+        if len(self.Disco) == 0:
+            print("Vacio")
+        else:
+            for proc in self.Disco:
+                print(proc.id)
+        print("-----------------------------")
 
     def Alocar(self, proceso: "Proceso"):
         index = 0
