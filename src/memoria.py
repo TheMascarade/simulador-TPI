@@ -2,7 +2,7 @@
 # DiscoAlocar() ya verifica si queda espacio en disco asi en el flujo del simulador solamente tenemos que invocar ese metodo para saber si se puede admitir un proceso o no
 # Tambien podemos hacer lo mismo con memoria interna si resulta mas facil
 
-from proceso import Proceso
+from proceso import *
 
 class Memoria:
     def __init__(self, particiones) -> None:
@@ -31,21 +31,21 @@ class Memoria:
             if len(self.Disco)<2:
                 self.Disco.append(proceso)
                 self.procesosAlmacenados+=1
-                return True
-        return False
+                return False
+        return None
 
     def EncontrarParticion(self,proceso):
         #devuelve True si esta en memoria
         #devuelve False si esta en Disco
         #Y si no esta devuelve None
-        if proceso in self.Particiones:
-            return True
-        elif proceso in self.Disco:
+        for part in self.Particiones:
+            if proceso == part.Proceso:
+                return True
+        if proceso in self.Disco:
             return False
         raise("no esta asignado el proceso")
 
-    def PasarAMemoria(self,proceso,procesosListos):
-        #esta funcion solo se usa despues de encontrarParticion y si devuelve False
+    def PasarAMemoria(self,proceso,procesosListos): 
         self.Disco.remove(proceso)
         procesosReOrganizar=[proceso]
         procesosListos
@@ -78,16 +78,27 @@ class Memoria:
     def Desalocar(self, proceso: Proceso):
         index = 0
         for particion in self.Particiones:
-            if particion.GetProceso == proceso:
+            if particion.Proceso == proceso:
                 particion.Desalocar()
                 break
 
-    def CargarDesdeDisco(self):
-        if self.Disco == 0:
-            return
-        for proc in self.Disco:
-            if self.Alocar(proc):
-                proc.estado = Estado.Listo
+    def CargarDesdeDisco(self, proceso : Proceso):
+        self.Disco.remove(proceso) 
+        index = None
+        frag = 9999999
+        for particion in self.Particiones:
+            fragParticion = particion.GetFragInterna(proceso)
+            if fragParticion >= 0 and fragParticion < frag:
+                frag = fragParticion
+                index = self.Particiones.index(particion)
+        procADisco=self.Particiones[index].Proceso
+        self.Disco.append(procADisco)
+        procADisco.estado=Estado.Suspendido
+        self.Particiones[index].CargarProceso(proceso)
+        proceso.estado=Estado.Listo
+
+
+
 
 
 class Particion:
@@ -111,6 +122,6 @@ class Particion:
         self.FragInterna = None
 
     def GetFragInterna(self,proceso:Proceso):
-        return proceso.tam-self.Tam
+        return self.Tam-proceso.tam
 
 

@@ -1,7 +1,6 @@
 import json
 import csv
-from memoria import *
-from procesador import *
+from memoria import * 
 from proceso import *
 
 
@@ -9,11 +8,15 @@ class Simulador:
     def __init__(self, cargaTrabajo: list[Proceso], particiones: list[Particion]):
         self.cargaTrabajo = cargaTrabajo
         self.reloj = 0 
+        self.quantum=2
         self.memoria = Memoria(particiones)
-        self.procesosNuevos=[]
         self.procesoAEjecutar=None
+        self.procesosNuevos=[]
         self.procesosEnDisco=[]
         self.procesosEnMemoria=[]
+        self.procesosOrden=[]
+        self.procesosTerminados=[]
+
 
     def TrabajosPosibles(self) -> list[Proceso]:
         procesosAdmisibles = []
@@ -31,45 +34,98 @@ class Simulador:
         # 4 Ver si el proceso termino o si acabo el quantum
         #    - Si termino ver si podemos cargar otro y desalocarlo
         #    - Si termino el quantum volverlo a colaListos (se encarga procesador)
-
-
+        
+        #cargamos todos los procesos de la carga de trabajo a la lista de nuevos
         while self.cargaTrabajo[0].arribo==self.reloj:
             self.procesosNuevos.append(self.cargaTrabajo.pop(0))
             if len(self.cargaTrabajo)==0:
                 break
+        while len(self.procesosNuevos):
+                    pudoAlocar=self.memoria.TratarAlocar(self.procesosNuevos[0])
+                    if pudoAlocar==True:
+                        proc=self.procesosNuevos.pop(0)
+                        self.procesosEnMemoria.append(proc)
+                        self.procesosOrden.append(proc)
+                        proc.Estado=Estado.Listo
 
+                    elif pudoAlocar==False:
+                        proc=self.procesosNuevos.pop(0)
+                        self.procesosEnDisco.append(proc) 
+                        self.procesosOrden.append(proc)
+                        proc.Estado=Estado.Suspendido
+                    else:
+                        #si no se pudo ubicar pues queda en estado Nuevo hasta que se pueda ubicar
+                        break
+        
+        
+        while True:            
+            if self.procesoAEjecutar==None:
+                self.procesoAEjecutar=self.procesosOrden.pop(0)
+                estaEnMemoria=self.memoria.EncontrarParticion(self.procesoAEjecutar)
+                if estaEnMemoria==True: self.procesoAEjecutar.estado=Estado.Listo
+                elif estaEnMemoria==False: self.procesoAEjecutar.estado=Estado.Suspendido
+                else: raise("el proceso no esta cargado")
 
-        while True:
+            self.reloj += 1
+            self.procesoAEjecutar.irrupcion-=1
+            self.quantum-=1
+            #Cambiamos de proceso a ejecutar 
+
             while len(self.cargaTrabajo)>0 and self.cargaTrabajo[0].arribo==self.reloj:
                 self.procesosNuevos.append(self.cargaTrabajo.pop(0))
                 if len(self.cargaTrabajo)==0:
                     break
-                    
+
             if self.memoria.procesosAlmacenados<5:
                 while len(self.procesosNuevos):
                     pudoAlocar=self.memoria.TratarAlocar(self.procesosNuevos[0])
                     if pudoAlocar==True:
                         proc=self.procesosNuevos.pop(0)
-                        self.procesador.EnviarACola(proc,Estado.Listo)
+                        self.procesosEnMemoria.append(proc)
+                        self.procesosOrden.append(proc)
+                        proc.Estado=Estado.Listo
+
                     elif pudoAlocar==False:
                         proc=self.procesosNuevos.pop(0)
-                        self.procesador.EnviarACola(proc,Estado.Suspendido)
+                        self.procesosEnDisco.append(proc) 
+                        self.procesosOrden.append(proc)
+                        proc.Estado=Estado.Suspendido
                     else:
                         #si no se pudo ubicar pues queda en estado Nuevo hasta que se pueda ubicar
-                        #averiguar como romper doble loop
                         break
-            test=self.procesador.ProcesosListos
-            res = self.procesador.Ejecutar()
-            self.reloj += 1
-            if res is not None:
-                if res[0]=='fin':
-                    self.memoria.Desalocar(res)
-                #nos fijamos si el siguiente proceso a ejecutar esta en memoria
-                sigProc= self.procesador.SiguienteProcesoAEjecutar()
-                if self.memoria.EncontrarParticion(sigProc)==True:
-                    self.memoria.PasarAMemoria(sigProc,self.procesador.__ProcesosListos)
+                    
+            if self.procesoAEjecutar.irrupcion==0:
+                terminado=self.procesoAEjecutar
+                self.memoria.Desalocar(terminado)
+                self.procesosTerminados.append(terminado)
+                if terminado in self.procesosEnDisco: self.procesosEnDisco.remove(terminado)
+                if terminado in self.procesosEnMemoria: self.procesosEnMemoria.remove(terminado)
+                if terminado in self.procesosOrden: self.procesosOrden.remove(terminado)
+                self.procesoAEjecutar =None
+                self.quantum =2
+                #asignar el siguiente proceso de alguna forma
+                continue #se saltea el resto del loop 
                 
-                
+
+            elif self.quantum==0: 
+                self.procesoAEjecutar.estado=Estado.Listo
+                self.procesosOrden.append(self.procesoAEjecutar)
+                self.procesoAEjecutar=self.procesosOrden.pop(0) 
+                self.memoria.CargarDesdeDisco(self.procesoAEjecutar)
+                self.quantum =2
+            
+            #si el proceso esta en disco, traelo a memoria
+            if self.procesoAEjecutar.estado==Estado.Suspendido:
+                self.procesosEnDisco.remove(self.procesoAEjecutar)
+                self.memoria.CargarDesdeDisco(self.procesoAEjecutar)
+                self.procesosEnMemoria.append(self.procesoAEjecutar)
+                self.procesoAEjecutar.estado=Estado.Listo
+            
+            if self.procesoAEjecutar.estado!= Estado.Listo and  self.procesoAEjecutar.estado!= Estado.Ejecutando:
+                print("quiere ejecutarse algo q no esta listo")
+ 
+
+
 
 
     def MostrarMensaje(self,resultado):
