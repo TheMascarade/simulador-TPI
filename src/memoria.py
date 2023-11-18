@@ -103,9 +103,7 @@ class Particion:
 
     def Mostrar(self):
         id = 0
-        if self.Proceso == None:
-            id = 0
-        else:
+        if self.Proceso is not None:
             id = self.Proceso.id
         print("Particion:", self.Id)
         print("Proceso:", id)
