@@ -109,7 +109,7 @@ class Particion:
         self.Id = id
         self.Tam = tam
         self.DirComienzo = dir_comienzo
-        self.FragInterna = frag_interna
+        self.FragInterna = tam
         self.Proceso = None
         self.Ocupado = False
         self.Os = False
@@ -122,7 +122,7 @@ class Particion:
     def Desalocar(self):
         self.Proceso = None
         self.Ocupado = False
-        self.FragInterna = None
+        self.FragInterna = self.Tam
 
     def GetFragInterna(self,proceso:Proceso):
         return self.Tam-proceso.tam

@@ -18,3 +18,7 @@ class Proceso:
 
     def DescontarIrrupcion(self):
         self.irrupcion -= 1
+    
+
+    def __str__(self) -> str:
+        return str(self.id)+str(self.arribo)+str(self.irrupcion)+str(self.tam)+str(self.estado.value)

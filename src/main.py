@@ -58,20 +58,10 @@ class Simulador:
 
         while True:
             # Seleccionamos proceso a ejecutar
-            if self.procesoAEjecutar==None and len(self.procesosOrden)>0:
-                self.procesoAEjecutar = self.procesosOrden.pop(0)
-                estaEnMemoria = self.memoria.EncontrarParticion(self.procesoAEjecutar)
-                if estaEnMemoria == True:
-                    self.procesoAEjecutar.estado = Estado.Listo
-                elif estaEnMemoria == False:
-                    self.procesoAEjecutar.estado = Estado.Suspendido
-                else:
-                    raise ("el proceso no esta cargado")
+            
 
             # Ejecucion del proceso
             self.reloj += 1
-            self.procesoAEjecutar.irrupcion -= 1
-            self.quantum -= 1
             # Cambiamos de proceso a ejecutar
 
             # Cargamos en procesosNuevos todos los que entran en los instantes sucesivos desde cargaTrabajo
@@ -101,6 +91,25 @@ class Simulador:
                     else:
                         # si no se pudo ubicar pues queda en estado Nuevo hasta que se pueda ubicar
                         break
+            
+            if self.procesoAEjecutar==None and len(self.procesosOrden)>0:
+                self.procesoAEjecutar = self.procesosOrden.pop(0)
+                estaEnMemoria = self.memoria.EncontrarParticion(self.procesoAEjecutar)
+                if estaEnMemoria == True:
+                    self.procesoAEjecutar.estado = Estado.Listo
+                elif estaEnMemoria == False:
+                    self.procesoAEjecutar.estado = Estado.Suspendido
+                else:
+                    raise ("el proceso no esta cargado")
+
+            if self.procesoAEjecutar !=None:
+                self.procesoAEjecutar.irrupcion -= 1
+                self.quantum -= 1
+            else:
+                continue
+
+            self.MostrarMensaje()
+
 
             # Tratamos proceso terminado
             if self.procesoAEjecutar.irrupcion == 0:
@@ -149,9 +158,9 @@ class Simulador:
                     break
                 if len(self.procesosOrden)!=0:
                     self.procesoAEjecutar = self.procesosOrden.pop(0)
-
-                
-                    
+                else:
+                    continue
+      
 
             # Tratamos fin de quantum
             elif self.quantum == 0:
@@ -181,8 +190,26 @@ class Simulador:
             ):
                 print("quiere ejecutarse algo q no esta listo")
 
-    def MostrarMensaje(self, resultado):
-        pass
+    def MostrarMensaje(self):
+
+        print("reloj",self.reloj)
+        print("quantum",self.quantum)
+        print("particiones")
+        for x in self.memoria.Particiones:
+            if x.Proceso!=None:
+                print("|{}|{}/{}|{}|".format(x.Proceso.id,x.FragInterna,x.Tam,x.DirComienzo))
+            else:
+                print("|{}|{}/{}|{}|".format("--",x.FragInterna,x.Tam,x.DirComienzo))
+
+
+        if len(self.memoria.Disco)>0:
+            print("procesos almacenados en disco")
+            for x in self.memoria.Disco:
+                print(x)
+        else:
+            print("no hay procesos en disco")
+
+        print("\n")
 
 
 def main():
