@@ -4,6 +4,7 @@ from memoria import *
 from proceso import *
 
 # TODO: Mandar procesos suspendidos a memoria interna cuando se pueda (solor en caso de proceso terminado)
+# TODO: implementar caso de fin de quantum
 
 
 class Simulador:
@@ -54,7 +55,7 @@ class Simulador:
                 # si no se pudo ubicar pues queda en estado Nuevo hasta que se pueda ubicar
                 break
 
-        while True:
+        while  True:
             # Seleccionamos proceso a ejecutar
             if self.procesoAEjecutar == None:
                 self.procesoAEjecutar = self.procesosEnMemoria[0]
@@ -134,11 +135,12 @@ class Simulador:
                 # Arriba ya nos encargamos de cargar en memoria
                 # y actualizar procesosOrden
                 self.procesoAEjecutar = self.procesosEnMemoria[0]
-                continue  # se saltea el resto del loop
 
-            # Tratamos fin de quantum
+            # Tratamos fin de quantum rotando procesosEnMemoria
             elif self.quantum == 0:
                 self.procesoAEjecutar.estado = Estado.Listo
+                listo = self.procesosEnMemoria.pop[0]
+                self.procesosEnMemoria.append[listo]
                 self.procesoAEjecutar = self.procesosEnMemoria[0]
                 # Esto no se puede hacer porque en fin de quantum no se descargan procesos
                 # self.memoria.CargarDesdeDisco(self.procesoAEjecutar)
@@ -149,9 +151,11 @@ class Simulador:
                 and self.procesoAEjecutar.estado != Estado.Ejecutando
             ):
                 print("quiere ejecutarse algo q no esta listo")
+            self.Mostrar()
 
-    def MostrarMensaje(self, resultado):
-        pass
+    def Mostrar(self):
+        print("reloj:",self.reloj)
+        print("id",self.procesoAEjecutar.id)
 
 
 def main():
