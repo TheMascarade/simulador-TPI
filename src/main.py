@@ -59,6 +59,7 @@ class Simulador:
                 break
 
         while True:
+            # Seleccionamos proceso a ejecutar
             if self.procesoAEjecutar == None:
                 self.procesoAEjecutar = self.procesosOrden.pop(0)
                 estaEnMemoria = self.memoria.EncontrarParticion(self.procesoAEjecutar)
@@ -107,6 +108,30 @@ class Simulador:
             if self.procesoAEjecutar.irrupcion == 0:
                 terminado = self.procesoAEjecutar
                 self.memoria.Desalocar(terminado)
+                # Ahora tratamos de cargar un proceso en disco o nuevo
+                for suspendido in self.procesosEnDisco:
+                    if self.memoria.CargarDesdeDisco(suspendido):
+                        self.procesosEnMemoria.append(suspendido)
+                        self.procesosEnDisco.remove(suspendido)
+                        suspendido.estado = Estado.Listo
+                        break
+                    else:
+                        # Admitimos uno nuevo si no podemos cargar desde disco
+                        # Si msg == None seguimos probando con los demas nuevos
+                        for nuevo in self.procesosNuevos:
+                            msg = self.memoria.TratarAlocar(nuevo)
+                            if msg==True:
+                                self.procesosEnMemoria.append(nuevo)
+                                self.procesosOrden.append(nuevo)
+                                self.procesosNuevos.remove(nuevo)
+                                nuevo.estado = Estado.listo
+                                break
+                            if msg == False:
+                                self.procesosEnDisco.append(nuevo)
+                                self.procesosOrden.append(nuevo)
+                                self.procesosNuevos.remove(nuevo)
+                                nuevo.estado = Estado.Suspendido
+                                break
                 self.procesosTerminados.append(terminado)
                 if terminado in self.procesosEnDisco:
                     self.procesosEnDisco.remove(terminado)
@@ -117,6 +142,9 @@ class Simulador:
                 self.procesoAEjecutar = None
                 self.quantum = 2
                 # asignar el siguiente proceso de alguna forma
+                # Arriba ya nos encargamos de cargar en memoria
+                # y actualizar procesosOrden
+                self.procesoAEjecutar = self.procesosOrden[0]
                 continue  # se saltea el resto del loop
 
             # Tratamos fin de quantum
@@ -124,7 +152,8 @@ class Simulador:
                 self.procesoAEjecutar.estado = Estado.Listo
                 self.procesosOrden.append(self.procesoAEjecutar)
                 self.procesoAEjecutar = self.procesosOrden.pop(0)
-                self.memoria.CargarDesdeDisco(self.procesoAEjecutar)
+                # Esto no se puede hacer porque en fin de quantum no se descargan procesos
+                # self.memoria.CargarDesdeDisco(self.procesoAEjecutar)
                 self.quantum = 2
 
             # si el proceso esta en disco, traelo a memoria

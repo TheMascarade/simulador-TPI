@@ -12,6 +12,9 @@ class Memoria:
 
 
     def TratarAlocar(self, proceso: Proceso):
+        # True: alocado en memoria
+        # False: alocado en disco
+        # None: No pudo ser alocado
         index = None
         frag = 9999999
         # Algoritmo best-fit para ver si podemos alocar
@@ -83,19 +86,12 @@ class Memoria:
                 break
 
     def CargarDesdeDisco(self, proceso : Proceso):
-        self.Disco.remove(proceso) 
-        index = None
-        frag = 9999999
-        for particion in self.Particiones:
-            fragParticion = particion.GetFragInterna(proceso)
-            if fragParticion >= 0 and fragParticion < frag:
-                frag = fragParticion
-                index = self.Particiones.index(particion)
-        procADisco=self.Particiones[index].Proceso
-        self.Disco.append(procADisco)
-        procADisco.estado=Estado.Suspendido
-        self.Particiones[index].CargarProceso(proceso)
-        proceso.estado=Estado.Listo
+        # Se supone que llamamos a este metodo cuando desalocamos de memoria principal porque termino un proceso
+        if self.ParticionDisponible(proceso):
+            self.DiscoDesalocar(proceso)
+            self.TratarAlocar(proceso) # Ya sabemos que se puede meter en memoria
+            return True
+        return False
 
 
 
