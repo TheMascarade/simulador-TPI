@@ -3,8 +3,6 @@ import csv
 from memoria import *
 from proceso import *
 
-# TODO: Mandar procesos suspendidos a memoria interna cuando se pueda (solor en caso de proceso terminado)
-
 
 
 class Simulador:
@@ -144,7 +142,7 @@ class Simulador:
                 # asignar el siguiente proceso de alguna forma
                 # Arriba ya nos encargamos de cargar en memoria
                 # y actualizar procesosOrden
-                
+
                 #si termino la carga de trabajo y no queda nada en nuevo ni para ejecutarse, termina el loop
                 if len(self.cargaTrabajo)==0 and len(self.procesosOrden)==0 and len(self.procesosNuevos)==0:
                     print("termino")
