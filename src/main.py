@@ -47,20 +47,20 @@ class Simulador:
                 proc = self.procesosNuevos.pop(0)
                 self.procesosEnMemoria.append(proc)
                 self.procesosOrden.append(proc)
-                proc.Estado = Estado.Listo
+                proc.estado = Estado.Listo
 
             elif pudoAlocar == False:
                 proc = self.procesosNuevos.pop(0)
                 self.procesosEnDisco.append(proc)
                 self.procesosOrden.append(proc)
-                proc.Estado = Estado.Suspendido
+                proc.estado = Estado.Suspendido
             else:
                 # si no se pudo ubicar pues queda en estado Nuevo hasta que se pueda ubicar
                 break
 
         while True:
             # Seleccionamos proceso a ejecutar
-            if self.procesoAEjecutar == None:
+            if self.procesoAEjecutar==None and len(self.procesosOrden)>0:
                 self.procesoAEjecutar = self.procesosOrden.pop(0)
                 estaEnMemoria = self.memoria.EncontrarParticion(self.procesoAEjecutar)
                 if estaEnMemoria == True:
@@ -93,13 +93,13 @@ class Simulador:
                         proc = self.procesosNuevos.pop(0)
                         self.procesosEnMemoria.append(proc)
                         self.procesosOrden.append(proc)
-                        proc.Estado = Estado.Listo
+                        proc.estado = Estado.Listo
 
                     elif pudoAlocar == False:
                         proc = self.procesosNuevos.pop(0)
                         self.procesosEnDisco.append(proc)
                         self.procesosOrden.append(proc)
-                        proc.Estado = Estado.Suspendido
+                        proc.estado = Estado.Suspendido
                     else:
                         # si no se pudo ubicar pues queda en estado Nuevo hasta que se pueda ubicar
                         break
@@ -124,7 +124,7 @@ class Simulador:
                                 self.procesosEnMemoria.append(nuevo)
                                 self.procesosOrden.append(nuevo)
                                 self.procesosNuevos.remove(nuevo)
-                                nuevo.estado = Estado.listo
+                                nuevo.estado = Estado.Listo
                                 break
                             if msg == False:
                                 self.procesosEnDisco.append(nuevo)
@@ -144,8 +144,16 @@ class Simulador:
                 # asignar el siguiente proceso de alguna forma
                 # Arriba ya nos encargamos de cargar en memoria
                 # y actualizar procesosOrden
-                self.procesoAEjecutar = self.procesosOrden[0]
-                continue  # se saltea el resto del loop
+                
+                #si termino la carga de trabajo y no queda nada en nuevo ni para ejecutarse, termina el loop
+                if len(self.cargaTrabajo)==0 and len(self.procesosOrden)==0 and len(self.procesosNuevos)==0:
+                    print("termino")
+                    break
+                if len(self.procesosOrden)!=0:
+                    self.procesoAEjecutar = self.procesosOrden.pop(0)
+
+                
+                    
 
             # Tratamos fin de quantum
             elif self.quantum == 0:
@@ -159,9 +167,15 @@ class Simulador:
             # si el proceso esta en disco, traelo a memoria
             if self.procesoAEjecutar.estado == Estado.Suspendido:
                 self.procesosEnDisco.remove(self.procesoAEjecutar)
-                self.memoria.CargarDesdeDisco(self.procesoAEjecutar)
+                procesoViejo=self.memoria.PasarAMemoria(self.procesoAEjecutar)
+                if procesoViejo !=None:
+                    self.procesosEnMemoria.remove(procesoViejo)
+                    self.procesosEnDisco.append(procesoViejo)
                 self.procesosEnMemoria.append(self.procesoAEjecutar)
-                self.procesoAEjecutar.estado = Estado.Listo
+                self.procesoAEjecutar.estado = Estado.Ejecutando
+
+            if self.procesoAEjecutar.estado==Estado.Listo:
+                self.procesoAEjecutar.estado==Estado.Ejecutando
 
             if (
                 self.procesoAEjecutar.estado != Estado.Listo

@@ -48,14 +48,21 @@ class Memoria:
             return False
         raise("no esta asignado el proceso")
 
-    def PasarAMemoria(self,proceso,procesosListos): 
-        self.Disco.remove(proceso)
-        procesosReOrganizar=[proceso]
-        procesosListos
+    def PasarAMemoria(self,proceso): 
+        self.Disco.remove(proceso) 
+        index = None
+        frag = 9999999
         for particion in self.Particiones:
-            particion.Desalocar()
-        for proc in procesosListos:
-            self.Alocar(proc)
+            fragParticion = particion.GetFragInterna(proceso)
+            if fragParticion >= 0 and fragParticion < frag:
+                frag = fragParticion
+                index = self.Particiones.index(particion)
+        procADisco=self.Particiones[index].Proceso
+        self.Disco.append(procADisco)
+        procADisco.estado=Estado.Suspendido
+        self.Particiones[index].CargarProceso(proceso)
+        proceso.estado=Estado.Listo
+        return procADisco
         
 
     def ParticionDisponible(self, proceso: Proceso):
