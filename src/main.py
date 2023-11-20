@@ -104,6 +104,7 @@ class Simulador:
 
             if self.procesoAEjecutar !=None:
                 self.procesoAEjecutar.irrupcion -= 1
+                self.procesoAEjecutar.retorno += 1
                 self.quantum -= 1
             else:
                 continue
@@ -189,6 +190,10 @@ class Simulador:
                 and self.procesoAEjecutar.estado != Estado.Ejecutando
             ):
                 print("quiere ejecutarse algo q no esta listo")
+            if len(self.procesosEnMemoria) != 0:
+                for proc in self.procesosEnMemoria:
+                    proc.espera += 1
+                    proc.retorno += 1
 
     def MostrarMensaje(self):
 
