@@ -15,6 +15,8 @@ class Proceso:
         self.irrupcion = tIrrupcion
         self.tam = tam
         self.estado = Estado.Nuevo
+        self.espera = 0 # Tiempo que pasa en el estado de listo
+        self.retorno = 0 # Tiempo que pasa entre estado listo y ejecucion
 
     def DescontarIrrupcion(self):
         self.irrupcion -= 1
