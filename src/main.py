@@ -3,8 +3,7 @@ import csv
 from memoria import *
 from proceso import *
 
-from prettytable import PrettyTable
-
+from prettytable import PrettyTable 
 
 
 class Simulador:
@@ -17,7 +16,6 @@ class Simulador:
         self.procesosNuevos = []
         self.procesosEnDisco = []
         self.procesosEnMemoria = []
-        self.procesosOrden = []
         self.procesosTerminados = []
 
     def TrabajosPosibles(self) -> list[Proceso]:
@@ -58,7 +56,7 @@ class Simulador:
                 # si no se pudo ubicar pues queda en estado Nuevo hasta que se pueda ubicar
                 break
 
-        while True:
+        while  True:
             # Seleccionamos proceso a ejecutar
             
             # Ejecucion del proceso
@@ -67,8 +65,7 @@ class Simulador:
 
             # Cargamos en procesosNuevos todos los que entran en los instantes sucesivos desde cargaTrabajo
             while (
-                len(self.cargaTrabajo) > 0 and 
-                self.cargaTrabajo[0].arribo == self.reloj
+                len(self.cargaTrabajo) > 0 and self.cargaTrabajo[0].arribo == self.reloj
             ):
                 self.procesosNuevos.append(self.cargaTrabajo.pop(0))
                 if len(self.cargaTrabajo) == 0:
@@ -131,15 +128,13 @@ class Simulador:
                         # Si msg == None seguimos probando con los demas nuevos
                         for nuevo in self.procesosNuevos:
                             msg = self.memoria.TratarAlocar(nuevo)
-                            if msg==True:
+                            if msg == True:
                                 self.procesosEnMemoria.append(nuevo)
-                                self.procesosOrden.append(nuevo)
                                 self.procesosNuevos.remove(nuevo)
                                 nuevo.estado = Estado.Listo
                                 break
                             if msg == False:
                                 self.procesosEnDisco.append(nuevo)
-                                self.procesosOrden.append(nuevo)
                                 self.procesosNuevos.remove(nuevo)
                                 nuevo.estado = Estado.Suspendido
                                 break
@@ -148,8 +143,6 @@ class Simulador:
                     self.procesosEnDisco.remove(terminado)
                 if terminado in self.procesosEnMemoria:
                     self.procesosEnMemoria.remove(terminado)
-                if terminado in self.procesosOrden:
-                    self.procesosOrden.remove(terminado)
                 self.procesoAEjecutar = None
                 self.quantum = 2
                 # asignar el siguiente proceso de alguna forma
@@ -166,11 +159,12 @@ class Simulador:
                     continue
       
 
-            # Tratamos fin de quantum
+            # Tratamos fin de quantum rotando procesosEnMemoria
             elif self.quantum == 0:
                 self.procesoAEjecutar.estado = Estado.Listo
-                self.procesosOrden.append(self.procesoAEjecutar)
-                self.procesoAEjecutar = self.procesosOrden.pop(0)
+                listo = self.procesosEnMemoria.pop[0]
+                self.procesosEnMemoria.append[listo]
+                self.procesoAEjecutar = self.procesosEnMemoria[0]
                 # Esto no se puede hacer porque en fin de quantum no se descargan procesos
                 # self.memoria.CargarDesdeDisco(self.procesoAEjecutar)
                 self.quantum = 2
