@@ -27,13 +27,11 @@ class Memoria:
                 index = self.Particiones.index(particion)
 
         if index !=None:
-            self.Particiones[index].CargarProceso(proceso)
-            self.procesosAlmacenados+=1
+            self.Particiones[index].CargarProceso(proceso) 
             return True
         else:
             if len(self.Disco)<2:
                 self.Disco.append(proceso)
-                self.procesosAlmacenados+=1
                 return False
         return None
 
@@ -91,6 +89,7 @@ class Memoria:
             if particion.Proceso == proceso:
                 particion.Desalocar()
                 break
+        self.procesosAlmacenados-=1
 
     def CargarDesdeDisco(self, proceso : Proceso):
         # Se supone que llamamos a este metodo cuando desalocamos de memoria principal porque termino un proceso

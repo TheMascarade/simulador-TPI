@@ -17,10 +17,11 @@ class Proceso:
         self.estado = Estado.Nuevo
         self.espera = 0 # Tiempo que pasa en el estado de listo
         self.retorno = 0 # Tiempo que pasa entre estado listo y ejecucion
+        self.tiempoTerminado=0
 
     def DescontarIrrupcion(self):
         self.irrupcion -= 1
     
 
     def __str__(self) -> str:
-        return str(self.id)+str(self.arribo)+str(self.irrupcion)+str(self.tam)+str(self.estado.value)
+        return "id:"+self.id+" tiempo de arribo:"+str(self.arribo)+" tiempo restante:"+str(self.irrupcion)+str(self.tam)
