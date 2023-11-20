@@ -3,6 +3,8 @@ import csv
 from memoria import *
 from proceso import *
 
+from prettytable import PrettyTable
+
 
 
 class Simulador:
@@ -59,7 +61,6 @@ class Simulador:
         while True:
             # Seleccionamos proceso a ejecutar
             
-
             # Ejecucion del proceso
             self.reloj += 1
             # Cambiamos de proceso a ejecutar
@@ -102,19 +103,21 @@ class Simulador:
                 else:
                     raise ("el proceso no esta cargado")
 
+            self.MostrarMensaje()
+
             if self.procesoAEjecutar !=None:
                 self.procesoAEjecutar.irrupcion -= 1
                 self.quantum -= 1
             else:
                 continue
 
-            self.MostrarMensaje()
 
 
             # Tratamos proceso terminado
             if self.procesoAEjecutar.irrupcion == 0:
                 terminado = self.procesoAEjecutar
                 self.memoria.Desalocar(terminado)
+                self.memoria.procesosAlmacenados-=1
                 # Ahora tratamos de cargar un proceso en disco o nuevo
                 for suspendido in self.procesosEnDisco:
                     if self.memoria.CargarDesdeDisco(suspendido):
@@ -190,17 +193,20 @@ class Simulador:
             ):
                 print("quiere ejecutarse algo q no esta listo")
 
+
+
     def MostrarMensaje(self):
 
-        print("reloj",self.reloj)
-        print("quantum",self.quantum)
-        print("particiones")
+        print("reloj: ",self.reloj)
+        print("quantum: ",self.quantum)
+        print("particiones:")
+        t=PrettyTable(["id particion","id proceso","fragmentacion/tamano","direccion de comienzo"])
         for x in self.memoria.Particiones:
             if x.Proceso!=None:
-                print("|{}|{}/{}|{}|".format(x.Proceso.id,x.FragInterna,x.Tam,x.DirComienzo))
+                t.add_row([x.Id,x.Proceso.id,str(x.FragInterna)+"/"+str(x.Tam),x.DirComienzo])
             else:
-                print("|{}|{}/{}|{}|".format("--",x.FragInterna,x.Tam,x.DirComienzo))
-
+                t.add_row([x.Id,"-",str(x.FragInterna)+"/"+str(x.Tam),x.DirComienzo])
+        print(t)        
 
         if len(self.memoria.Disco)>0:
             print("procesos almacenados en disco")
@@ -208,7 +214,6 @@ class Simulador:
                 print(x)
         else:
             print("no hay procesos en disco")
-
         print("\n")
 
 
